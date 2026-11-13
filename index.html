@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="VocabQuest" />
+  <title>VocabQuest 10 — Engelsk Tentamen</title>
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-card: #151c2c;
+      --bg-card-hover: #1e293b;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.45);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.4);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #26334d;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    button, .deck-card, .tile-btn, .option-btn, .chip-btn, .back-btn, .speak-btn {
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+
+    .app-container {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 20px) 16px;
+      position: relative;
+    }
+
+    /* Top HUD */
+    .hud {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 14px;
+      background: rgba(21, 28, 44, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-top: 8px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .hud-stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .badge-rank {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .streak-pill {
+      color: #fb923c;
+      background: rgba(251, 146, 60, 0.14);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(251, 146, 60, 0.3);
+      transition: transform 0.2s ease;
+    }
+
+    .streak-pill.bump {
+      transform: scale(1.22);
+    }
+
+    .xp-pill {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.28);
+    }
+
+    /* Screen switching */
+    .screen {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* Hero / Home Screen */
+    .hero-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px 18px;
+      margin-bottom: 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-title {
+      font-size: 1.65rem;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+      color: #c7d2fe;
+    }
+
+    .hero-sub {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.4;
+      margin-bottom: 16px;
+    }
+
+    .mastery-bar-wrap {
+      background: #0b0f19;
+      border-radius: 999px;
+      height: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+
+    .mastery-bar-fill {
+      background: linear-gradient(90deg, #6366f1, #10b981);
+      height: 100%;
+      width: 0%;
+      transition: width 0.35s ease;
+    }
+
+    .mastery-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Category Grid */
+    .section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      font-weight: 800;
+      margin: 6px 0 10px 4px;
+    }
+
+    .deck-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .deck-card {
+      width: 100%;
+      text-align: left;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-main);
+      font-family: inherit;
+    }
+
+    .deck-card:active {
+      background: var(--bg-card-hover);
+      transform: scale(0.98);
+    }
+
+    .deck-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .deck-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      flex-shrink: 0;
+    }
+
+    .deck-info h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .deck-info p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .deck-progress-badge {
+      background: #0b0f19;
+      border: 1px solid var(--border);
+      padding: 6px 11px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #a5b4fc;
+      flex-shrink: 0;
+    }
+
+    /* Action Buttons */
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 8px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+
+    /* Game Screen */
+    .game-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+
+    .back-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .round-progress-wrap {
+      flex: 1;
+      background: #0b0f19;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .round-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #6366f1);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .hearts {
+      font-size: 1rem;
+      letter-spacing: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Stage Pill */
+    .stage-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 8px 14px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #c7d2fe;
+    }
+
+    .stage-stars {
+      letter-spacing: 2px;
+      color: #fbbf24;
+    }
+
+    /* Question Card */
+    .question-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 24px 18px;
+      text-align: center;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+
+    .prompt-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .prompt-word {
+      font-size: 1.65rem;
+      font-weight: 900;
+      margin-bottom: 10px;
+      color: #ffffff;
+      line-height: 1.25;
+    }
+
+    .prompt-context {
+      font-size: 0.92rem;
+      color: #94a3b8;
+      font-style: italic;
+      background: rgba(11, 15, 25, 0.65);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px dashed var(--border);
+      line-height: 1.4;
+    }
+
+    .speak-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Multiple Choice Options */
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .option-btn {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      color: var(--text-main);
+      padding: 15px 16px;
+      border-radius: 16px;
+      font-size: 1.02rem;
+      font-weight: 700;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: inherit;
+    }
+
+    .option-btn.correct {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: #10b981;
+      color: #6ee7b7;
+    }
+
+    .option-btn.wrong {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+
+    /* Scramble / Letter Tiles (Stage 2) */
+    .scramble-area {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .answer-slots {
+      min-height: 56px;
+      background: #0b0f19;
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .letter-Pool {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .tile-btn {
+      min-width: 40px;
+      height: 44px;
+      padding: 0 10px;
+      border-radius: 11px;
+      background: var(--bg-card);
+      border: 2px solid #3b4c6b;
+      color: #fff;
+      font-size: 1.15rem;
+      font-weight: 800;
+      box-shadow: 0 3px 0 #0b0f19;
+      font-family: inherit;
+      text-transform: lowercase;
+    }
+
+    .tile-btn.used {
+      opacity: 0.2;
+      pointer-events: none;
+    }
+
+    .tile-btn.in-slot {
+      background: #4f46e5;
+      border-color: #818cf8;
+    }
+
+    /* Typing Input (Stage 3) */
+    .typing-area {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .word-hint-boxes {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 1.15rem;
+      letter-spacing: 2px;
+      color: #a5b4fc;
+      font-weight: 800;
+    }
+
+    .type-input {
+      width: 100%;
+      background: #0b0f19;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 16px; /* Prevents iOS Safari auto-zoom */
+      color: #fff;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      font-family: inherit;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .type-input:focus {
+      border-color: var(--primary);
+    }
+
+    .helper-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px 13px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-family: inherit;
+    }
+
+    /* Feedback Banner */
+    .feedback-box {
+      display: none;
+      padding: 14px 16px;
+      border-radius: 16px;
+      margin-bottom: 12px;
+    }
+
+    .feedback-box.show {
+      display: block;
+    }
+
+    .feedback-box.good {
+      background: rgba(16, 185, 129, 0.16);
+      border: 1px solid #10b981;
+      color: #a7f3d0;
+    }
+
+    .feedback-box.bad {
+      background: rgba(239, 68, 68, 0.16);
+      border: 1px solid #ef4444;
+      color: #fecaca;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .feedback-detail {
+      font-size: 0.88rem;
+      line-height: 1.35;
+    }
+
+    /* Modal / Custom Words */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 100;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 20px;
+      width: 100%;
+      max-width: 440px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .modal-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+    }
+
+    .modal-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .custom-textarea {
+      width: 100%;
+      height: 130px;
+      background: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 16px;
+      margin-bottom: 12px;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    /* Summary Screen */
+    .summary-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 26px 20px;
+      text-align: center;
+      margin: auto 0;
+    }
+
+    .summary-trophy {
+      font-size: 3.4rem;
+      margin-bottom: 10px;
+    }
+
+    .summary-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .stat-tile {
+      background: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .stat-tile .val {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #38bdf8;
+    }
+
+    .stat-tile .lbl {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top HUD -->
+    <div class="hud">
+      <div class="hud-stat">
+        <span class="badge-rank" id="hudRank">Rookie</span>
+      </div>
+      <div class="hud-stat streak-pill" id="hudStreakWrap">
+        🔥 <span id="hudStreak">0</span>
+      </div>
+      <div class="hud-stat xp-pill">
+        ⚡ <span id="hudXP">0</span> XP
+      </div>
+    </div>
+
+    <!-- HOME SCREEN -->
+    <div class="screen active" id="homeScreen">
+      <div class="hero-card">
+        <div class="hero-title">VocabQuest 10</div>
+        <div class="hero-sub">
+          Spill deg klar til engelsktentamen! Start med flervalg, bygg ord av bokstaver, og bli mester ved å skrive ordene selv.
+        </div>
+        <div class="mastery-bar-wrap">
+          <div class="mastery-bar-fill" id="totalMasteryBar"></div>
+        </div>
+        <div class="mastery-stats">
+          <span id="masteryCountText">0 / 48 ord mestret (⭐⭐⭐)</span>
+          <span id="nextRankText">Neste rang: 200 XP</span>
+        </div>
+      </div>
+
+      <div class="section-title">Velg Oppdrag (Trykk for å starte)</div>
+      <div class="deck-grid" id="deckList"></div>
+
+      <div class="btn-row">
+        <button type="button" class="btn btn-primary" id="btnStartMixed">
+          🚀 Tentamen-Mix
+        </button>
+        <button type="button" class="btn btn-secondary" id="btnOpenCustom">
+          ➕ Egne gloser
+        </button>
+      </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div class="screen" id="gameScreen">
+      <div class="game-header">
+        <button type="button" class="back-btn" id="btnGoHome" title="Tilbake">✕</button>
+        <div class="round-progress-wrap">
+          <div class="round-progress-fill" id="roundProgressBar"></div>
+        </div>
+        <div class="hearts" id="heartsDisplay">❤️❤️❤️</div>
+      </div>
+
+      <div class="stage-banner">
+        <span id="stageModeLabel">Nivå 1: Velg riktig ord</span>
+        <span class="stage-stars" id="wordStarsDisplay">☆☆☆</span>
+      </div>
+
+      <div class="question-card">
+        <button type="button" class="speak-btn" id="btnSpeakWord" title="Lytt til uttale">🔊</button>
+        <div class="prompt-label" id="promptDirection">Norsk betydning</div>
+        <div class="prompt-word" id="promptWord">Midlertidig</div>
+        <div class="prompt-context" id="promptContext"></div>
+      </div>
+
+      <!-- Mode 1: Multiple Choice -->
+      <div class="options-grid" id="mcArea"></div>
+
+      <!-- Mode 2: Scramble Tiles -->
+      <div class="scramble-area" id="scrambleArea" style="display:none;">
+        <div class="answer-slots" id="scrambleSlots"></div>
+        <div class="letter-Pool" id="scramblePool"></div>
+        <div class="helper-row">
+          <button type="button" class="chip-btn" id="btnClearScramble">🔄 Nullstill</button>
+          <button type="button" class="chip-btn" id="btnHintScramble">💡 Hint (-5 XP)</button>
+        </div>
+      </div>
+
+      <!-- Mode 3: Typing -->
+      <div class="typing-area" id="typingArea" style="display:none;">
+        <div class="word-hint-boxes" id="typingHintBoxes"></div>
+        <input
+          type="text"
+          id="typeInput"
+          class="type-input"
+          placeholder="Skriv det engelske ordet..."
+          autocomplete="off"
+          autocapitalize="none"
+          autocorrect="off"
+          spellcheck="false"
+        />
+        <div class="helper-row">
+          <button type="button" class="chip-btn" id="btnRevealLetter">💡 Vis bokstav (-5 XP)</button>
+          <button type="button" class="btn btn-primary" style="padding:10px 22px;" id="btnSubmitTyped">Sjekk svar</button>
+        </div>
+      </div>
+
+      <!-- Feedback Box -->
+      <div class="feedback-box" id="feedbackBox">
+        <div class="feedback-title" id="feedbackTitle"></div>
+        <div class="feedback-detail" id="feedbackDetail"></div>
+      </div>
+
+      <button type="button" class="btn btn-accent" id="nextQuestionBtn" style="display:none; margin-top:auto;">
+        Neste oppgave →
+      </button>
+    </div>
+
+    <!-- SUMMARY SCREEN -->
+    <div class="screen" id="summaryScreen">
+      <div class="summary-card">
+        <div class="summary-trophy" id="summaryEmoji">🏆</div>
+        <h2 id="summaryTitle" style="font-size:1.5rem; margin-bottom:6px;">Runde Fullført!</h2>
+        <p id="summarySub" style="color:var(--text-muted); font-size:0.92rem;">Imponerende innsats før tentamen!</p>
+
+        <div class="summary-stats-grid">
+          <div class="stat-tile">
+            <div class="val" id="sumXP">+120</div>
+            <div class="lbl">XP Opptjent</div>
+          </div>
+          <div class="stat-tile">
+            <div class="val" id="sumAcc">90%</div>
+            <div class="lbl">Treffsikkerhet</div>
+          </div>
+          <div class="stat-tile">
+            <div class="val" id="sumBestStreak">6 🔥</div>
+            <div class="lbl">Beste Streak</div>
+          </div>
+          <div class="stat-tile">
+            <div class="val" id="sumUpgraded">5 ⭐</div>
+            <div class="lbl">Oppgradert Nivå</div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" id="btnSummaryHome">🏠 Meny</button>
+          <button type="button" class="btn btn-primary" id="btnSummaryReplay">🔁 Spill igjen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Gloser Modal -->
+  <div class="modal-backdrop" id="customModal">
+    <div class="modal-card">
+      <h3>➕ Legg inn egne gloser</h3>
+      <p>
+        Har han fått en gloseliste eller et forberedelsesark på skolen? Skriv ett ordpar per linje:
+        <br /><code>engelsk ord = norsk betydning</code>
+      </p>
+      <textarea class="custom-textarea" id="customWordsInput" placeholder="resilient = motstandsdyktig&#10;inevitable = uunngåelig&#10;sustainable = bærekraftig"></textarea>
+      <div class="btn-row">
+        <button type="button" class="btn btn-secondary" id="btnCancelCustom">Avbryt</button>
+        <button type="button" class="btn btn-primary" id="btnSaveCustom">Lagre & Spill</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var DEFAULT_DECKS = [
+        {
+          id: "linking",
+          title: "Bindord & Flyt",
+          subtitle: "Løfter teksten fra karakter 3/4 til 5/6",
+          icon: "🔗",
+          words: [
+            { en: "furthermore", no: "dessuten / videre", ex: "___, this shows how technology changes society." },
+            { en: "consequently", no: "derfor / som en følge av dette", ex: "He didn't study; ___, he struggled on the test." },
+            { en: "nevertheless", no: "likevel / til tross for dette", ex: "The task was hard; ___, she refused to give up." },
+            { en: "whereas", no: "mens derimot", ex: "Some prefer city life, ___ others love nature." },
+            { en: "undoubtedly", no: "utvilsomt", ex: "Climate change is ___ one of our biggest challenges." },
+            { en: "on the contrary", no: "tvert imot", ex: "It wasn't boring; ___, it was fascinating." },
+            { en: "in addition", no: "i tillegg", ex: "___ to working out, he eats healthy food." },
+            { en: "despite", no: "til tross for", ex: "___ the heavy rain, the match continued." },
+            { en: "eventually", no: "til slutt / omsider", ex: "After hours of searching, they ___ found the key." },
+            { en: "meanwhile", no: "i mellomtiden", ex: "She cooked dinner; ___, her brother set the table." },
+            { en: "overall", no: "alt i alt", ex: "___, the experiment was a great success." },
+            { en: "significantly", no: "betydelig / vesentlig", ex: "Screen time has increased ___ among teenagers." }
+          ]
+        },
+        {
+          id: "argument",
+          title: "Drøfting & Analyse",
+          subtitle: "Sterke verb og uttrykk til langsvar",
+          icon: "⚖️",
+          words: [
+            { en: "emphasize", no: "understreke / fremheve", ex: "The author wants to ___ the importance of honesty." },
+            { en: "controversial", no: "omstridt / kontroversiell", ex: "Banning phones in school is a ___ topic." },
+            { en: "perspective", no: "synspunkt / perspektiv", ex: "Traveling gives you a new ___ on life." },
+            { en: "convince", no: "overbevise", ex: "She tried to ___ her parents to let her go." },
+            { en: "beneficial", no: "gunstig / nyttig", ex: "Good sleep is ___ for both memory and mood." },
+            { en: "consequence", no: "konsekvens / følge", ex: "Every choice we make has a ___." },
+            { en: "acknowledge", no: "anerkjenne / innrømme", ex: "We must ___ that the problem is complex." },
+            { en: "exaggerate", no: "overdrive", ex: "Social media often makes people ___ their success." },
+            { en: "justify", no: "rettferdiggjøre / begrunne", ex: "Nothing can ___ bullying another person." },
+            { en: "crucial", no: "avgjørende / kritisk viktig", ex: "Trust is ___ in any close friendship." },
+            { en: "obstacle", no: "hindring", ex: "Fear of failure can be a major ___." },
+            { en: "solution", no: "løsning", ex: "We need a long-term ___ to this issue." }
+          ]
+        },
+        {
+          id: "society",
+          title: "Samfunn, Klima & Fremtid",
+          subtitle: "Klassiske temaer på 10. trinns tentamen",
+          icon: "🌍",
+          words: [
+            { en: "sustainable", no: "bærekraftig", ex: "We need more ___ sources of energy." },
+            { en: "inequality", no: "ulikhet", ex: "Economic ___ is a growing issue in many countries." },
+            { en: "artificial", no: "kunstig", ex: "___ intelligence is changing how we work." },
+            { en: "diversity", no: "mangfold", ex: "Cultural ___ enriches our society." },
+            { en: "prejudice", no: "fordom(mer)", ex: "Education helps reduce ___ and stereotypes." },
+            { en: "democracy", no: "demokrati", ex: "Voting is a cornerstone of ___." },
+            { en: "responsibility", no: "ansvar", ex: "Protecting nature is our shared ___." },
+            { en: "influence", no: "påvirkning / påvirke", ex: "Influencers have a huge ___ on young people." },
+            { en: "accessible", no: "tilgjengelig", ex: "Education should be ___ to everyone." },
+            { en: "freedom", no: "frihet", ex: "___ of speech is a fundamental human right." },
+            { en: "opportunity", no: "mulighet / sjanse", ex: "Everyone deserves an equal ___ to succeed." },
+            { en: "generation", no: "generasjon", ex: "Our ___ will shape the future of the planet." }
+          ]
+        },
+        {
+          id: "adjectives",
+          title: "Karakter 6-Adjektiver",
+          subtitle: "Bytt ut 'good/bad' med presise ord",
+          icon: "✨",
+          words: [
+            { en: "inevitable", no: "uunngåelig", ex: "Change is ___ as we grow older." },
+            { en: "vulnerable", no: "sårbar", ex: "Sharing your true feelings can make you feel ___." },
+            { en: "resilient", no: "motstandsdyktig / robust", ex: "Teenagers are often more ___ than adults think." },
+            { en: "overwhelming", no: "overveldende", ex: "Exam week can sometimes feel ___." },
+            { en: "ambitious", no: "ambisiøs / målbevisst", ex: "She is very ___ and works hard for her goals." },
+            { en: "genuine", no: "ekte / oppriktig", ex: "He showed ___ kindness to the new student." },
+            { en: "essential", no: "helt nødvendig / vesentlig", ex: "Clean water is ___ for all living things." },
+            { en: "fragile", no: "skjør / sårbar", ex: "The ecosystem in the Arctic is very ___." },
+            { en: "remarkable", no: "bemerkelsesverdig / imponerende", ex: "She made ___ progress in just one month." },
+            { en: "reluctant", no: "motvillig / nølende", ex: "He was ___ to admit that he had made a mistake." },
+            { en: "confident", no: "selvsikker / trygg", ex: "Practicing vocabulary makes you feel more ___." },
+            { en: "grateful", no: "takknemlig", ex: "I am really ___ for all the support from my friends." }
+          ]
+        }
+      ];
+
+      var STORAGE_KEY = "vocabquest10_state_v1";
+      var state = {
+        xp: 0,
+        streak: 0,
+        bestStreak: 0,
+        mastery: {},
+        customWords: []
+      };
+
+      function loadState() {
+        try {
+          var raw = window.localStorage ? localStorage.getItem(STORAGE_KEY) : null;
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === "object") {
+              state.xp = parsed.xp || 0;
+              state.streak = parsed.streak || 0;
+              state.bestStreak = parsed.bestStreak || 0;
+              state.mastery = parsed.mastery || {};
+              state.customWords = parsed.customWords || [];
+            }
+          }
+        } catch (e) {}
+      }
+
+      function saveState() {
+        try {
+          if (window.localStorage) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          }
+        } catch (e) {}
+      }
+
+      var audioCtx = null;
+      function playTone(type) {
+        try {
+          var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+          if (!audioCtx) audioCtx = new AudioContextClass();
+          if (audioCtx.state === "suspended") audioCtx.resume();
+          var now = audioCtx.currentTime;
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          if (type === "correct") {
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(523.25, now);
+            osc.frequency.setValueAtTime(659.25, now + 0.08);
+            osc.frequency.setValueAtTime(783.99, now + 0.16);
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+            osc.start(now);
+            osc.stop(now + 0.35);
+          } else if (type === "wrong") {
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(220, now);
+            osc.frequency.setValueAtTime(165, now + 0.12);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+            osc.start(now);
+            osc.stop(now + 0.32);
+          } else if (type === "tap") {
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(440, now);
+            gain.gain.setValueAtTime(0.07, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+            osc.start(now);
+            osc.stop(now + 0.06);
+          }
+        } catch (e) {}
+      }
+
+      function getAllDecks() {
+        var decks = DEFAULT_DECKS.slice();
+        if (state.customWords && state.customWords.length > 0) {
+          decks.unshift({
+            id: "custom",
+            title: "Mine Skolegloser",
+            subtitle: "Dine egne innlagte gloser",
+            icon: "📝",
+            words: state.customWords
+          });
+        }
+        return decks;
+      }
+
+      function getAllWordsFlat() {
+        var decks = getAllDecks();
+        var all = [];
+        for (var i = 0; i < decks.length; i++) {
+          for (var j = 0; j < decks[i].words.length; j++) {
+            all.push(decks[i].words[j]);
+          }
+        }
+        return all;
+      }
+
+      function getRankInfo(xp) {
+        var ranks = [
+          { name: "Rookie", min: 0, next: 200 },
+          { name: "Explorer", min: 200, next: 500 },
+          { name: "Word Ninja", min: 500, next: 1000 },
+          { name: "Tentamen Pro", min: 1000, next: 1800 },
+          { name: "Karakter 6 Boss", min: 1800, next: null }
+        ];
+        for (var i = ranks.length - 1; i >= 0; i--) {
+          if (xp >= ranks[i].min) return ranks[i];
+        }
+        return ranks[0];
+      }
+
+      function updateHUD() {
+        document.getElementById("hudXP").textContent = state.xp;
+        document.getElementById("hudStreak").textContent = state.streak;
+        var rank = getRankInfo(state.xp);
+        document.getElementById("hudRank").textContent = rank.name;
+        document.getElementById("nextRankText").textContent =
+          rank.next ? "Neste rang: " + rank.next + " XP" : "Maks rang oppnådd! 👑";
+
+        var allWords = getAllWordsFlat();
+        var totalPossibleStars = allWords.length * 3;
+        var earnedStars = 0;
+        var fullyMastered = 0;
+        for (var i = 0; i < allWords.length; i++) {
+          var m = state.mastery[allWords[i].en] || 0;
+          earnedStars += m;
+          if (m >= 3) fullyMastered++;
+        }
+
+        var pct = totalPossibleStars > 0 ? Math.round((earnedStars / totalPossibleStars) * 100) : 0;
+        document.getElementById("totalMasteryBar").style.width = pct + "%";
+        document.getElementById("masteryCountText").textContent =
+          fullyMastered + " / " + allWords.length + " ord mestret (" + pct + "%)";
+      }
+
+      function renderHome() {
+        updateHUD();
+        var list = document.getElementById("deckList");
+        list.innerHTML = "";
+        var decks = getAllDecks();
+
+        decks.forEach(function (deck) {
+          var stars = 0;
+          var maxStars = deck.words.length * 3;
+          deck.words.forEach(function (w) {
+            stars += (state.mastery[w.en] || 0);
+          });
+
+          var card = document.createElement("button");
+          card.type = "button";
+          card.className = "deck-card";
+          card.innerHTML =
+            '<div class="deck-left">' +
+              '<div class="deck-icon">' + deck.icon + '</div>' +
+              '<div class="deck-info">' +
+                '<h3>' + deck.title + '</h3>' +
+                '<p>' + deck.subtitle + '</p>' +
+              '</div>' +
+            '</div>' +
+            '<div class="deck-progress-badge">⭐ ' + stars + '/' + maxStars + '</div>';
+
+          card.addEventListener("click", function () {
+            startDeck(deck.id);
+          });
+          list.appendChild(card);
+        });
+      }
+
+      var currentDeckId = null;
+      var roundQueue = [];
+      var roundIndex = 0;
+      var hearts = 3;
+      var roundXPEarned = 0;
+      var roundCorrect = 0;
+      var roundUpgrades = 0;
+      var currentItem = null;
+      var currentMode = 1;
+      var scrambleSelected = [];
+      var scramblePoolChars = [];
+      var revealedCount = 1;
+      var answeredCurrent = false;
+
+      function startDeck(deckId) {
+        currentDeckId = deckId;
+        var decks = getAllDecks();
+        var deck = null;
+        for (var i = 0; i < decks.length; i++) {
+          if (decks[i].id === deckId) {
+            deck = decks[i];
+            break;
+          }
+        }
+        if (!deck) return;
+        beginRoundWithPool(deck.words);
+      }
+
+      function startMixedRun() {
+        currentDeckId = "mixed";
+        beginRoundWithPool(getAllWordsFlat());
+      }
+
+      function replayCurrentDeck() {
+        if (currentDeckId === "mixed") startMixedRun();
+        else startDeck(currentDeckId);
+      }
+
+      function shuffle(arr) {
+        var a = arr.slice();
+        for (var i = a.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var tmp = a[i];
+          a[i] = a[j];
+          a[j] = tmp;
+        }
+        return a;
+      }
+
+      function beginRoundWithPool(wordsPool) {
+        var sorted = shuffle(wordsPool).sort(function (a, b) {
+          var ma = state.mastery[a.en] || 0;
+          var mb = state.mastery[b.en] || 0;
+          return ma - mb;
+        });
+
+        roundQueue = sorted.slice(0, Math.min(8, sorted.length));
+        roundIndex = 0;
+        hearts = 3;
+        roundXPEarned = 0;
+        roundCorrect = 0;
+        roundUpgrades = 0;
+
+        showScreen("gameScreen");
+        loadTurn();
+      }
+
+      function showScreen(id) {
+        var screens = document.querySelectorAll(".screen");
+        for (var i = 0; i < screens.length; i++) {
+          screens[i].classList.remove("active");
+        }
+        document.getElementById(id).classList.add("active");
+      }
+
+      function goHome() {
+        showScreen("homeScreen");
+        renderHome();
+      }
+
+      function renderStars(level) {
+        var l = Math.max(0, Math.min(3, level));
+        var out = "";
+        for (var i = 0; i < 3; i++) {
+          out += i < l ? "★" : "☆";
+        }
+        return out;
+      }
+
+      function renderHearts(h) {
+        var out = "";
+        for (var i = 0; i < 3; i++) {
+          out += i < h ? "❤️" : "🖤";
+        }
+        return out;
+      }
+
+      function loadTurn() {
+        if (roundIndex >= roundQueue.length || hearts <= 0) {
+          finishRound();
+          return;
+        }
+
+        answeredCurrent = false;
+        currentItem = roundQueue[roundIndex];
+        var masteryLevel = state.mastery[currentItem.en] || 0;
+
+        if (masteryLevel === 0) currentMode = 1;
+        else if (masteryLevel === 1) currentMode = 2;
+        else currentMode = 3;
+
+        var pct = Math.round((roundIndex / roundQueue.length) * 100);
+        document.getElementById("roundProgressBar").style.width = pct + "%";
+        document.getElementById("heartsDisplay").textContent = renderHearts(hearts);
+        document.getElementById("wordStarsDisplay").textContent = renderStars(masteryLevel);
+
+        var modeLabels = {
+          1: "Steg 1/3 • Flervalg (Bli kjent med ordet)",
+          2: "Steg 2/3 • Bygg ordet (Bokstav-puslespill)",
+          3: "Steg 3/3 • Tentamen-modus (Skriv ordet!)"
+        };
+        document.getElementById("stageModeLabel").textContent = modeLabels[currentMode];
+
+        document.getElementById("promptDirection").textContent = "Hva er det engelske ordet for:";
+        document.getElementById("promptWord").textContent = currentItem.no;
+        document.getElementById("promptContext").textContent =
+          currentItem.ex ? 'Eksempel: "' + currentItem.ex + '"' : "Bruk ordet i en engelsk setning!";
+
+        document.getElementById("feedbackBox").className = "feedback-box";
+        document.getElementById("nextQuestionBtn").style.display = "none";
+
+        document.getElementById("mcArea").style.display = currentMode === 1 ? "flex" : "none";
+        document.getElementById("scrambleArea").style.display = currentMode === 2 ? "flex" : "none";
+        document.getElementById("typingArea").style.display = currentMode === 3 ? "flex" : "none";
+
+        if (currentMode === 1) setupMultipleChoice();
+        else if (currentMode === 2) setupScramble();
+        else setupTyping();
+      }
+
+      function setupMultipleChoice() {
+        var container = document.getElementById("mcArea");
+        container.innerHTML = "";
+        var allWords = getAllWordsFlat();
+        var pool = [];
+        for (var i = 0; i < allWords.length; i++) {
+          if (allWords[i].en !== currentItem.en) pool.push(allWords[i]);
+        }
+        var distractors = shuffle(pool).slice(0, 3);
+        var choices = shuffle([currentItem].concat(distractors));
+
+        choices.forEach(function (choice) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "option-btn";
+          btn.innerHTML = "<span>" + choice.en + "</span><span>→</span>";
+          btn.addEventListener("click", function () {
+            handleMCAnswer(btn, choice.en === currentItem.en);
+          });
+          container.appendChild(btn);
+        });
+      }
+
+      function handleMCAnswer(clickedBtn, isCorrect) {
+        if (answeredCurrent) return;
+        answeredCurrent = true;
+
+        var buttons = document.querySelectorAll("#mcArea .option-btn");
+        for (var i = 0; i < buttons.length; i++) {
+          buttons[i].disabled = true;
+          var wordText = buttons[i].querySelector("span").textContent;
+          if (wordText === currentItem.en) buttons[i].classList.add("correct");
+        }
+
+        if (!isCorrect) clickedBtn.classList.add("wrong");
+        evaluateResult(isCorrect);
+      }
+
+      function setupScramble() {
+        scrambleSelected = [];
+        var cleanChars = currentItem.en.split("");
+        scramblePoolChars = shuffle(
+          cleanChars.map(function (ch, idx) {
+            return { ch: ch, idx: idx, used: false };
+          })
+        );
+        renderScrambleUI();
+      }
+
+      function renderScrambleUI() {
+        var slotsEl = document.getElementById("scrambleSlots");
+        var poolEl = document.getElementById("scramblePool");
+        slotsEl.innerHTML = "";
+        poolEl.innerHTML = "";
+
+        scrambleSelected.forEach(function (item, sIdx) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "tile-btn in-slot";
+          b.textContent = item.ch;
+          b.addEventListener("click", function () {
+            if (answeredCurrent) return;
+            playTone("tap");
+            item.used = false;
+            scrambleSelected.splice(sIdx, 1);
+            renderScrambleUI();
+          });
+          slotsEl.appendChild(b);
+        });
+
+        scramblePoolChars.forEach(function (item) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "tile-btn" + (item.used ? " used" : "");
+          b.textContent = item.ch === " " ? "␣" : item.ch;
+          b.addEventListener("click", function () {
+            if (answeredCurrent || item.used) return;
+            playTone("tap");
+            item.used = true;
+            scrambleSelected.push(item);
+            renderScrambleUI();
+
+            if (scrambleSelected.length === currentItem.en.length) {
+              var attempt = scrambleSelected.map(function (x) { return x.ch; }).join("").toLowerCase();
+              answeredCurrent = true;
+              evaluateResult(attempt === currentItem.en.toLowerCase());
+            }
+          });
+          poolEl.appendChild(b);
+        });
+      }
+
+      function clearScramble() {
+        if (answeredCurrent) return;
+        scrambleSelected = [];
+        scramblePoolChars.forEach(function (x) { x.used = false; });
+        renderScrambleUI();
+      }
+
+      function giveScrambleHint() {
+        if (answeredCurrent) return;
+        var targetLen = scrambleSelected.length;
+        var neededChar = currentItem.en[targetLen];
+        if (!neededChar) return;
+
+        var match = null;
+        for (var i = 0; i < scramblePoolChars.length; i++) {
+          if (!scramblePoolChars[i].used && scramblePoolChars[i].ch === neededChar) {
+            match = scramblePoolChars[i];
+            break;
+          }
+        }
+        if (match) {
+          state.xp = Math.max(0, state.xp - 5);
+          updateHUD();
+          match.used = true;
+          scrambleSelected.push(match);
+          renderScrambleUI();
+          if (scrambleSelected.length === currentItem.en.length) {
+            answeredCurrent = true;
+            var attempt = scrambleSelected.map(function (x) { return x.ch; }).join("").toLowerCase();
+            evaluateResult(attempt === currentItem.en.toLowerCase());
+          }
+        }
+      }
+
+      function setupTyping() {
+        revealedCount = 1;
+        updateTypingHintBoxes();
+        var input = document.getElementById("typeInput");
+        input.value = "";
+        input.disabled = false;
+      }
+
+      function updateTypingHintBoxes() {
+        var word = currentItem.en;
+        var display = "";
+        for (var i = 0; i < word.length; i++) {
+          if (word[i] === " ") display += "  ";
+          else if (i < revealedCount) display += word[i] + " ";
+          else display += "_ ";
+        }
+        document.getElementById("typingHintBoxes").textContent = display.trim();
+      }
+
+      function revealNextLetter() {
+        if (answeredCurrent) return;
+        if (revealedCount < currentItem.en.length) {
+          revealedCount++;
+          state.xp = Math.max(0, state.xp - 5);
+          updateHUD();
+          updateTypingHintBoxes();
+          var input = document.getElementById("typeInput");
+          input.value = currentItem.en.slice(0, revealedCount);
+          input.focus();
+        }
+      }
+
+      function levenshtein(a, b) {
+        var m = a.length, n = b.length;
+        var dp = [];
+        for (var i = 0; i <= m; i++) {
+          dp[i] = [];
+          for (var j = 0; j <= n; j++) dp[i][j] = 0;
+          dp[i][0] = i;
+        }
+        for (var j2 = 0; j2 <= n; j2++) dp[0][j2] = j2;
+        for (var r = 1; r <= m; r++) {
+          for (var c = 1; c <= n; c++) {
+            var cost = a[r - 1] === b[c - 1] ? 0 : 1;
+            dp[r][c] = Math.min(dp[r - 1][c] + 1, dp[r][c - 1] + 1, dp[r - 1][c - 1] + cost);
+          }
+        }
+        return dp[m][n];
+      }
+
+      function submitTypedAnswer() {
+        if (answeredCurrent) return;
+        var input = document.getElementById("typeInput");
+        var val = input.value.trim().toLowerCase();
+        if (!val) return;
+
+        answeredCurrent = true;
+        input.disabled = true;
+        var target = currentItem.en.toLowerCase();
+        var isExact = val === target;
+        var dist = levenshtein(val, target);
+        evaluateResult(isExact, dist === 1);
+      }
+
+      function evaluateResult(isCorrect, wasClose) {
+        var fb = document.getElementById("feedbackBox");
+        var fbTitle = document.getElementById("feedbackTitle");
+        var fbDetail = document.getElementById("feedbackDetail");
+        var oldMastery = state.mastery[currentItem.en] || 0;
+
+        if (isCorrect) {
+          playTone("correct");
+          state.streak++;
+          if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+          roundCorrect++;
+
+          var streakBonus = Math.min(20, state.streak * 3);
+          var modePoints = currentMode * 15;
+          var gained = modePoints + streakBonus;
+          state.xp += gained;
+          roundXPEarned += gained;
+
+          if (oldMastery < 3) {
+            state.mastery[currentItem.en] = oldMastery + 1;
+            roundUpgrades++;
+          }
+
+          var pill = document.getElementById("hudStreakWrap");
+          pill.classList.add("bump");
+          setTimeout(function () { pill.classList.remove("bump"); }, 220);
+
+          fb.className = "feedback-box show good";
+          fbTitle.textContent = "Riktig! +" + gained + " XP 🔥";
+          var fullSentence = currentItem.ex
+            ? currentItem.ex.replace("___", '"' + currentItem.en + '"')
+            : currentItem.en + " = " + currentItem.no;
+          fbDetail.textContent = "Uttale & bruk: " + fullSentence;
+          speakWord(currentItem.en);
+        } else {
+          playTone("wrong");
+          state.streak = 0;
+          hearts = Math.max(0, hearts - 1);
+          document.getElementById("heartsDisplay").textContent = renderHearts(hearts);
+
+          if (oldMastery > 0) {
+            state.mastery[currentItem.en] = oldMastery - 1;
+          }
+
+          fb.className = "feedback-box show bad";
+          fbTitle.textContent = wasClose
+            ? "Nesten! Kun én bokstav unna 👀"
+            : 'Ikke helt! Riktig ord er: "' + currentItem.en + '"';
+          fbDetail.textContent = currentItem.en + ' betyr "' + currentItem.no + '". Vi legger det til ekstra trening!';
+          speakWord(currentItem.en);
+        }
+
+        document.getElementById("wordStarsDisplay").textContent = renderStars(
+          state.mastery[currentItem.en] || 0
+        );
+        saveState();
+        updateHUD();
+        document.getElementById("nextQuestionBtn").style.display = "flex";
+      }
+
+      function nextTurn() {
+        roundIndex++;
+        loadTurn();
+      }
+
+      function finishRound() {
+        document.getElementById("roundProgressBar").style.width = "100%";
+        showScreen("summaryScreen");
+
+        var totalAnswered = Math.max(1, roundIndex);
+        var acc = Math.round((roundCorrect / totalAnswered) * 100);
+
+        document.getElementById("sumXP").textContent = "+" + roundXPEarned;
+        document.getElementById("sumAcc").textContent = acc + "%";
+        document.getElementById("sumBestStreak").textContent = state.bestStreak + " 🔥";
+        document.getElementById("sumUpgraded").textContent = roundUpgrades + " ⭐";
+
+        if (hearts <= 0) {
+          document.getElementById("summaryEmoji").textContent = "💪";
+          document.getElementById("summaryTitle").textContent = "Tom for hjerter – men du lærte masse!";
+          document.getElementById("summarySub").textContent =
+            "Ordene du bommet på er justert til enklere nivå, så neste runde tar du dem!";
+        } else if (acc >= 85) {
+          document.getElementById("summaryEmoji").textContent = "🏆";
+          document.getElementById("summaryTitle").textContent = "Strålende levert!";
+          document.getElementById("summarySub").textContent =
+            "Bruker du disse ordene på tentamen, vil sensor legge merke til det med en gang!";
+        } else {
+          document.getElementById("summaryEmoji").textContent = "🚀";
+          document.getElementById("summaryTitle").textContent = "Bra jobba!";
+          document.getElementById("summarySub").textContent =
+            "Spill én runde til så løftes ordene opp til bokstav- og skrive-nivå!";
+        }
+      }
+
+      function speakWord(text) {
+        try {
+          if (!("speechSynthesis" in window)) return;
+          window.speechSynthesis.cancel();
+          var utter = new SpeechSynthesisUtterance(text);
+          utter.lang = "en-US";
+          utter.rate = 0.92;
+          window.speechSynthesis.speak(utter);
+        } catch (e) {}
+      }
+
+      function openCustomModal() {
+        var existing = (state.customWords || [])
+          .map(function (w) { return w.en + " = " + w.no; })
+          .join("\n");
+        document.getElementById("customWordsInput").value = existing;
+        document.getElementById("customModal").classList.add("open");
+      }
+
+      function closeCustomModal() {
+        document.getElementById("customModal").classList.remove("open");
+      }
+
+      function saveCustomWords() {
+        var raw = document.getElementById("customWordsInput").value;
+        var lines = raw.split("\n");
+        var parsed = [];
+
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (!line) continue;
+          var parts = line.split(/[=:\-;]/);
+          if (parts.length >= 2) {
+            var en = parts[0].trim().toLowerCase();
+            var no = parts.slice(1).join(" ").trim();
+            if (en && no) {
+              parsed.push({
+                en: en,
+                no: no,
+                ex: 'Bruk "' + en + '" i teksten din på tentamen!'
+              });
+            }
+          }
+        }
+
+        state.customWords = parsed;
+        saveState();
+        closeCustomModal();
+        renderHome();
+        if (parsed.length > 0) {
+          startDeck("custom");
+        }
+      }
+
+      // Bind all static buttons via addEventListener (Safari safe)
+      document.getElementById("btnStartMixed").addEventListener("click", startMixedRun);
+      document.getElementById("btnOpenCustom").addEventListener("click", openCustomModal);
+      document.getElementById("btnGoHome").addEventListener("click", goHome);
+      document.getElementById("btnSpeakWord").addEventListener("click", function () {
+        if (currentItem) speakWord(currentItem.en);
+      });
+      document.getElementById("btnClearScramble").addEventListener("click", clearScramble);
+      document.getElementById("btnHintScramble").addEventListener("click", giveScrambleHint);
+      document.getElementById("btnRevealLetter").addEventListener("click", revealNextLetter);
+      document.getElementById("btnSubmitTyped").addEventListener("click", submitTypedAnswer);
+      document.getElementById("nextQuestionBtn").addEventListener("click", nextTurn);
+      document.getElementById("btnSummaryHome").addEventListener("click", goHome);
+      document.getElementById("btnSummaryReplay").addEventListener("click", replayCurrentDeck);
+      document.getElementById("btnCancelCustom").addEventListener("click", closeCustomModal);
+      document.getElementById("btnSaveCustom").addEventListener("click", saveCustomWords);
+
+      document.getElementById("typeInput").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (!answeredCurrent) submitTypedAnswer();
+          else nextTurn();
+        }
+      });
+
+      loadState();
+      renderHome();
+    })();
+  </script>
+</body>
+</html>
